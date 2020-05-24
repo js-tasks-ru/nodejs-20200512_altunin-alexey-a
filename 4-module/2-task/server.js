@@ -37,19 +37,21 @@ server.on('request', (req, res) => {
           res.statusCode = 413;
           res.end('1mb limit is exceeded');
         } else {
-          fse.unlink(filepath);
           res.statusCode = 500;
           res.end('Internal server error');
         }
+
+        fse.unlink(filepath);
       });
 
-      limitStream.on('finish', function() {
+      writeStream.on('close', function() {
         res.statusCode = 201;
 
         res.end('file was written');
       });
 
-      req.connection.on('close', function() {
+      req.on('close', function() {
+        if (res.finished) return;
         fse.unlink(filepath);
       });
 
