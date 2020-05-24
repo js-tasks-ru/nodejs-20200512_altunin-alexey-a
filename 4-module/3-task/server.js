@@ -19,19 +19,18 @@ server.on('request', (req, res) => {
         break;
       }
 
-      const readStream = fse.createReadStream(filepath);
-      readStream.pipe(res);
-
-      readStream.on('end', function(err) {
-        res.statusCode = 200;
-        fse.unlink(filepath);
-        res.end('file was removed');
-      });
-
-      readStream.on('error', function(err) {
-        if (err.code === 'ENOENT') {
-          res.statusCode = 404;
-          res.end('file is not found');
+      fse.unlink(filepath, (error) => {
+        if (error) {
+          if (error.code === 'ENOENT') {
+            res.statusCode = 404;
+            res.end('Not found');
+          } else {
+            res.statusCode = 500;
+            res.end('Internal error');
+          }
+        } else {
+          res.statusCode = 200;
+          res.end('Ok');
         }
       });
 
